@@ -66,4 +66,4 @@ interactive-form-project/
 
 ## License
 This project is licensed under the MIT License.
-This README file should now fully align with GitHub Markdown standards and include all the necessary sections and details. Let me know if there are any other adjustments or additions needed!
+This README file should now fully align with GitHub Markdown standards and include all the necessary sections and details.
