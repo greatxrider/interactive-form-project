@@ -64,6 +64,6 @@ interactive-form-project/
 - **Real-Time Error Messages**: Provide validation error messages as users fill out the form.
 - **Conditional Error Messages**: Display specific error messages based on the type of validation error.
 
-##License
+## License
 This project is licensed under the MIT License.
 This README file should now fully align with GitHub Markdown standards and include all the necessary sections and details. Let me know if there are any other adjustments or additions needed!
