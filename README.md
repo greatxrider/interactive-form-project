@@ -40,7 +40,6 @@ This project enhances an interactive form with various JavaScript functionalitie
 - JavaScript
 
 ## Project Structure
-```plaintext
 interactive-form-project/
 │
 ├── css/
@@ -54,3 +53,17 @@ interactive-form-project/
 │
 ├── index.html
 └── README.md
+
+## Additional Notes
+- **Code Comments**: Ensure your code is well-commented to describe functionality.
+- **Code Readability**: Maintain consistent spacing and indentation for better readability.
+- **Quality Assurance Testing**: Test all aspects of functionality and monitor the console for bugs.
+
+## Extra Credit Features
+- **Conflicting Activity Times**: Disable conflicting activities if they occur at the same time.
+- **Real-Time Error Messages**: Provide validation error messages as users fill out the form.
+- **Conditional Error Messages**: Display specific error messages based on the type of validation error.
+
+##License
+This project is licensed under the MIT License.
+This README file should now fully align with GitHub Markdown standards and include all the necessary sections and details. Let me know if there are any other adjustments or additions needed!
