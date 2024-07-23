@@ -65,5 +65,4 @@ interactive-form-project/
 - **Conditional Error Messages**: Display specific error messages based on the type of validation error.
 
 ## License
-This project is licensed under the MIT License.
-This README file should now fully align with GitHub Markdown standards and include all the necessary sections and details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
