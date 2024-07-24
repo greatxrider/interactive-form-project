@@ -14,6 +14,7 @@ const paymentSelector = document.getElementById('payment');
 const creditCardDiv = document.getElementById('credit-card');
 const paypalDiv = document.getElementById('paypal');
 const bitcoinDiv = document.getElementById('bitcoin');
+const inputElementsList = document.querySelectorAll('label > input[id]');
 const activitiesCheckboxList = document.querySelectorAll('[type="checkbox"]')
 const colorOptions = shirtColorSelector.children;
 let totalCost = 0;
@@ -26,6 +27,42 @@ document.addEventListener('DOMContentLoaded', (e) => {
     paypalDiv.hidden = true;
     bitcoinDiv.hidden = true;
     paymentSelector.children[1].setAttribute("selected", true);
+
+    const isNameValid = () => /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/i.test(nameInput.value);
+    const isNameBlank = () => /^\s*$/.test(nameInput.value);
+    const isFirstCharacterNotUppercase = () => /^[^A-Z]/.test();
+
+    const isEmailValid = () => /^[^@]+@[^@.]+\.[a-z]+$/i.test(emailInput.value);
+    const isEmailEmpty = () => /^\s*$/.test(emailInput.value);
+
+    const isCardNumberLengthValid = () => /^\d{13,16}$/.test(cardNumberInput.value);
+    const isZipCodeValid = () => /^\d{5}$/.test(zipCodeInput.value);
+    const isCVVValid = () => /^\d{3}$/.test(cvvInput.value);
+
+    /**
+        * Validates an input element based on a provided validation function.
+        * Updates the visibility and styling of the input element's parent based on the validation result.
+        * 
+        * @param {HTMLElement} inputElement - The input element to be validated.
+        * @param {Function} validationFunction - A function that performs validation on the input element.
+        */
+    const validator = (inputElement, validationFunction, event = null, message = null) => {
+        const parentElement = inputElement.parentElement;
+
+        if (validationFunction()) {
+            inputElement.nextElementSibling.style.display = 'none';
+            parentElement.classList.add('valid');
+            parentElement.classList.remove('not-valid');
+            parentElement.lastElementChild.hidden = true;
+        } else {
+            event ? event.preventDefault() : undefined;
+            inputElement.nextElementSibling.innerHTML = message;
+            inputElement.nextElementSibling.style.display = 'inherit';
+            parentElement.classList.add('not-valid');
+            parentElement.classList.remove('valid');
+            parentElement.lastElementChild.hidden = false;
+        }
+    };
 
     /**
      * Handles the change event for the job role selector.
@@ -108,62 +145,95 @@ document.addEventListener('DOMContentLoaded', (e) => {
      * @param {Event} event - The submit event object.
      */
     form.addEventListener('submit', (event) => {
-        const name = nameInput.value;
-        const email = emailInput.value;
-        const cardNumber = cardNumberInput.value;
-        const zipCode = zipCodeInput.value;
-        const cvv = cvvInput.value;
-        const isNameNotEmpty = () => /^(?!\s*$).+$/i.test(name);
-        const isEmailValid = () => /^[^@]+@[^@.]+\.[a-z]+$/i.test(email);
-        const isCardNumberLengthValid = () => /^\d{13,16}$/.test(cardNumber);
-        const isZipCodeValid = () => /^\d{5}$/.test(zipCode);
-        const isCVVValid = () => /^\d{3}$/.test(cvv);
-
-        /**
-         * Validates an input element based on a provided validation function.
-         * Updates the visibility and styling of the input element's parent based on the validation result.
-         * 
-         * @param {HTMLElement} inputElement - The input element to be validated.
-         * @param {Function} validationFunction - A function that performs validation on the input element.
-         */
-        const validator = (inputElement, validationFunction) => {
-            const parentElement = inputElement.parentElement;
-
-            if (validationFunction()) {
-                inputElement.nextElementSibling.style.display = 'none';
-                parentElement.classList.add('valid');
-                parentElement.classList.remove('not-valid');
-                parentElement.lastElementChild.hidden = true;
-            } else {
-                event.preventDefault();
-                inputElement.nextElementSibling.style.display = 'inherit';
-                parentElement.classList.add('not-valid');
-                parentElement.classList.remove('valid');
-                parentElement.lastElementChild.hidden = false;
-            }
-        };
-
         // Validate name, email, and payment details if using credit card
-        validator(nameInput, isNameNotEmpty);
-        validator(emailInput, isEmailValid);
+        validator(nameInput, isNameNotEmpty, event);
+        validator(emailInput, isEmailValid, event);
         if (paymentSelector.value === 'credit-card') {
-            validator(cardNumberInput, isCardNumberLengthValid);
-            validator(zipCodeInput, isZipCodeValid);
-            validator(cvvInput, isCVVValid);
+            validator(cardNumberInput, isCardNumberLengthValid, event);
+            validator(zipCodeInput, isZipCodeValid, event);
+            validator(cvvInput, isCVVValid, event);
         }
     });
 
     /**
-     * Adds focus and blur event listeners to each checkbox in the activities list.
-     * Highlights the checkbox's parent element when focused and removes the highlight when blurred.
-     */
+    * Adds focus and blur event listeners to each checkbox in the activities list.
+    * Highlights the checkbox's parent element when focused and removes the highlight when blurred.
+    */
     activitiesCheckboxList.forEach((checkbox) => {
+        // Function to update the state of conflicting activities
+        const updateConflictingActivities = (selectedActivity, isChecked) => {
+            const selectedActivityDate = selectedActivity.getAttribute('data-day-and-time');
+
+            activitiesCheckboxList.forEach((checkbox) => {
+                const activityDate = checkbox.getAttribute('data-day-and-time');
+                const isSameActivity = checkbox !== selectedActivity && activityDate === selectedActivityDate;
+
+                if (isSameActivity) {
+                    checkbox.disabled = isChecked;
+                    checkbox.parentElement.classList.toggle('disabled', isChecked);
+                }
+            });
+        };
+
         checkbox.addEventListener('focus', (event) => {
             event.target.parentElement.classList.add('focus');
         })
 
         checkbox.addEventListener('blur', (event) => {
             event.target.parentElement.classList.remove('focus');
+        })
+
+        checkbox.addEventListener('change', (event) => {
+            const selectedActivity = event.target;
+            updateConflictingActivities(selectedActivity, selectedActivity.checked);
+        });
+    });
+
+    inputElementsList.forEach((input) => {
+        /**
+         * Validates an input element based on its ID.
+         * @param {HTMLElement} input - The input element to be validated.
+         */
+        const validateInputById = (input) => {
+            let message = '';
+            switch (input.id) {
+                case 'name':
+                    if (isFirstCharacterNotUppercase) {
+                        message = 'The first character of the name must be uppercase.';
+                    } else if (isNameBlank) {
+                        message = 'Name field cannot be blank.';
+                    }
+
+                    validator(nameInput, isNameNotEmpty, null, message);
+                    break;
+                case 'email':
+                    if (isEmailEmpty) {
+                        message = "The email field cannot be empty. Please enter a valid email address."
+                    } else {
+                        message = "Email address must be formatted correctly."
+                    }
+                    validator(emailInput, isEmailValid, null, message);
+                    break;
+                case 'cc-num':
+                    validator(cardNumberInput, isCardNumberLengthValid);
+                    break;
+                case 'zip':
+                    validator(zipCodeInput, isZipCodeValid);
+                    break;
+                case 'cvv':
+                    validator(cvvInput, isCVVValid);
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        input.addEventListener('keyup', () => {
+            validateInputById(input);
+        });
+
+        input.addEventListener('blur', () => {
+            validateInputById(input);
         })
     })
 });
