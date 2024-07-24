@@ -28,14 +28,17 @@ document.addEventListener('DOMContentLoaded', (e) => {
     bitcoinDiv.hidden = true;
     paymentSelector.children[1].setAttribute("selected", true);
 
-    const isNameValid = () => /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/i.test(nameInput.value);
-    const isNameBlank = () => /^\s*$/.test(nameInput.value);
-    const isFirstCharacterNotUppercase = () => /^[^A-Z]/.test();
+    const isNameValid = () => /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/.test(nameInput.value);
+    const isInputBlank = (input) => /^\s*$/.test(input.value);
+    const isFirstCharacterUppercase = () => /^([A-Z]\s*)/.test(nameInput.value);
+    const isOnlyOneCharacter = () => nameInput.value.trim().length === 1;
 
     const isEmailValid = () => /^[^@]+@[^@.]+\.[a-z]+$/i.test(emailInput.value);
     const isEmailEmpty = () => /^\s*$/.test(emailInput.value);
 
     const isCardNumberLengthValid = () => /^\d{13,16}$/.test(cardNumberInput.value);
+
+
     const isZipCodeValid = () => /^\d{5}$/.test(zipCodeInput.value);
     const isCVVValid = () => /^\d{3}$/.test(cvvInput.value);
 
@@ -198,30 +201,47 @@ document.addEventListener('DOMContentLoaded', (e) => {
             let message = '';
             switch (input.id) {
                 case 'name':
-                    if (isFirstCharacterNotUppercase) {
+                    if (isInputBlank(input)) {
+                        message = 'Please enter your name.';
+                    } else if (!isFirstCharacterUppercase()) {
                         message = 'The first character of the name must be uppercase.';
-                    } else if (isNameBlank) {
-                        message = 'Name field cannot be blank.';
+                    } else if (isOnlyOneCharacter()) {
+                        message = 'Name must have at least two characters.';
                     }
-
-                    validator(nameInput, isNameNotEmpty, null, message);
+                    validator(nameInput, isNameValid, null, message);
                     break;
                 case 'email':
-                    if (isEmailEmpty) {
-                        message = "The email field cannot be empty. Please enter a valid email address."
-                    } else {
+                    if (isEmailEmpty()) {
+                        message = "The email field cannot be empty. Please enter your email address."
+                    } else if (!isEmailValid()) {
                         message = "Email address must be formatted correctly."
                     }
                     validator(emailInput, isEmailValid, null, message);
                     break;
                 case 'cc-num':
-                    validator(cardNumberInput, isCardNumberLengthValid);
+                    if (isInputBlank(input)) {
+                        message = 'Please enter your credit card number.';
+                    } else if (!isCardNumberLengthValid()) {
+                        message = 'Credit card number must be 13 to 16 digits long.';
+                    }
+                    validator(cardNumberInput, isCardNumberLengthValid, null, message);
                     break;
                 case 'zip':
-                    validator(zipCodeInput, isZipCodeValid);
+                    if (isInputBlank(input)) {
+                        message = 'Please enter your zip code.';
+                    } else if (!isZipCodeValid()) {
+                        message = 'Zip code must be 5 digits long.';
+                    }
+
+                    validator(zipCodeInput, isZipCodeValid, null, message);
                     break;
                 case 'cvv':
-                    validator(cvvInput, isCVVValid);
+                    if (isInputBlank(input)) {
+                        message = 'Please enter your CVV number.';
+                    } else if (!isCVVValid()) {
+                        message = 'CVV number must be 3 digits long.';
+                    }
+                    validator(cvvInput, isCVVValid, null, message);
                     break;
                 default:
                     break;
