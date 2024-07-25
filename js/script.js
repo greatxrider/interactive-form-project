@@ -32,13 +32,9 @@ document.addEventListener('DOMContentLoaded', (e) => {
     const isInputBlank = (input) => /^\s*$/.test(input.value);
     const isFirstCharacterUppercase = () => /^([A-Z]\s*)/.test(nameInput.value);
     const isOnlyOneCharacter = () => nameInput.value.trim().length === 1;
-
     const isEmailValid = () => /^[^@]+@[^@.]+\.[a-z]+$/i.test(emailInput.value);
     const isEmailEmpty = () => /^\s*$/.test(emailInput.value);
-
     const isCardNumberLengthValid = () => /^\d{13,16}$/.test(cardNumberInput.value);
-
-
     const isZipCodeValid = () => /^\d{5}$/.test(zipCodeInput.value);
     const isCVVValid = () => /^\d{3}$/.test(cvvInput.value);
 
