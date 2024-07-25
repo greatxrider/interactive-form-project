@@ -28,15 +28,131 @@ document.addEventListener('DOMContentLoaded', (e) => {
     bitcoinDiv.hidden = true;
     paymentSelector.children[1].setAttribute("selected", true);
 
-    const isNameValid = () => /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/.test(nameInput.value);
-    const isInputBlank = (input) => /^\s*$/.test(input.value);
-    const isFirstCharacterUppercase = () => /^([A-Z]\s*)/.test(nameInput.value);
-    const isOnlyOneCharacter = () => nameInput.value.trim().length === 1;
-    const isEmailValid = () => /^[^@]+@[^@.]+\.[a-z]+$/i.test(emailInput.value);
-    const isEmailEmpty = () => /^\s*$/.test(emailInput.value);
-    const isCardNumberLengthValid = () => /^\d{13,16}$/.test(cardNumberInput.value);
-    const isZipCodeValid = () => /^\d{5}$/.test(zipCodeInput.value);
-    const isCVVValid = () => /^\d{3}$/.test(cvvInput.value);
+    // Validation functions grouped in an object
+    const validationCheckers = {
+        /**
+         * Validates that the name starts with an uppercase letter followed by valid characters.
+         * @param {string} value - The value of the name input.
+         * @returns {boolean} - True if the name is valid, otherwise false.
+         */
+        isNameValid: (value) => /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/.test(value),
+
+        /**
+         * Checks if the input is blank.
+         * @param {string} value - The value of the input.
+         * @returns {boolean} - True if the input is blank, otherwise false.
+         */
+        isInputBlank: (value) => /^\s*$/.test(value),
+
+        /**
+         * Validates that the first character of the name is uppercase.
+         * @param {string} value - The value of the name input.
+         * @returns {boolean} - True if the first character is uppercase, otherwise false.
+         */
+        isFirstCharacterUppercase: (value) => /^([A-Z]\s*)/.test(value),
+
+        /**
+         * Checks if the name input contains only one character.
+         * @param {string} value - The value of the name input.
+         * @returns {boolean} - True if the name has only one character, otherwise false.
+         */
+        isOnlyOneCharacter: (value) => value.trim().length === 1,
+
+        /**
+         * Validates the email format.
+         * @param {string} value - The value of the email input.
+         * @returns {boolean} - True if the email is valid, otherwise false.
+         */
+        isEmailValid: (value) => /^[^@]+@[^@.]+\.[a-z]+$/i.test(value),
+
+        /**
+         * Checks if the email input is empty.
+         * @param {string} value - The value of the email input.
+         * @returns {boolean} - True if the email is empty, otherwise false.
+         */
+        isEmailEmpty: (value) => /^\s*$/.test(value),
+
+        /**
+         * Validates that the card number length is between 13 and 16 digits.
+         * @param {string} value - The value of the card number input.
+         * @returns {boolean} - True if the card number length is valid, otherwise false.
+         */
+        isCardNumberLengthValid: (value) => /^\d{13,16}$/.test(value),
+
+        /**
+         * Validates that the zip code is exactly 5 digits.
+         * @param {string} value - The value of the zip code input.
+         * @returns {boolean} - True if the zip code is valid, otherwise false.
+         */
+        isZipCodeValid: (value) => /^\d{5}$/.test(value),
+
+        /**
+         * Validates that the CVV is exactly 3 digits.
+         * @param {string} value - The value of the CVV input.
+         * @returns {boolean} - True if the CVV is valid, otherwise false.
+         */
+        isCVVValid: (value) => /^\d{3}$/.test(value),
+    };
+
+    const validationRules = {
+        'name': {
+            validate: (value) => {
+                let message = '';
+                if (validationCheckers.isInputBlank(value)) {
+                    message = 'Please enter your name.';
+                } else if (!validationCheckers.isFirstCharacterUppercase(value)) {
+                    message = 'The first character of the name must be uppercase.';
+                } else if (validationCheckers.isOnlyOneCharacter(value)) {
+                    message = 'Name must have at least two characters.';
+                }
+                return { isValid: validationCheckers.isNameValid(value), message };
+            }
+        },
+        'email': {
+            validate: (value) => {
+                let message = '';
+                if (validationCheckers.isEmailEmpty(value)) {
+                    message = 'The email field cannot be empty. Please enter your email address.';
+                } else if (!validationCheckers.isEmailValid(value)) {
+                    message = 'Email address must be formatted correctly.';
+                }
+                return { isValid: validationCheckers.isEmailValid(value), message };
+            }
+        },
+        'cc-num': {
+            validate: (value) => {
+                let message = '';
+                if (validationCheckers.isInputBlank(value)) {
+                    message = 'Please enter your credit card number.';
+                } else if (!validationCheckers.isCardNumberLengthValid(value)) {
+                    message = 'Credit card number must be 13 to 16 digits long.';
+                }
+                return { isValid: validationCheckers.isCardNumberLengthValid(value), message };
+            }
+        },
+        'zip': {
+            validate: (value) => {
+                let message = '';
+                if (validationCheckers.isInputBlank(value)) {
+                    message = 'Please enter your zip code.';
+                } else if (!validationCheckers.isZipCodeValid(value)) {
+                    message = 'Zip code must be 5 digits long.';
+                }
+                return { isValid: validationCheckers.isZipCodeValid(value), message };
+            }
+        },
+        'cvv': {
+            validate: (value) => {
+                let message = '';
+                if (validationCheckers.isInputBlank(value)) {
+                    message = 'Please enter your CVV number.';
+                } else if (!validationCheckers.isCVVValid(value)) {
+                    message = 'CVV number must be 3 digits long.';
+                }
+                return { isValid: validationCheckers.isCVVValid(value), message };
+            }
+        }
+    };
 
     /**
         * Validates an input element based on a provided validation function.
@@ -45,7 +161,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
         * @param {HTMLElement} inputElement - The input element to be validated.
         * @param {Function} validationFunction - A function that performs validation on the input element.
         */
-    const validator = (inputElement, validationFunction, event = null, message = null) => {
+    const validator = (inputElement, validationFunction, event, message = null) => {
         const parentElement = inputElement.parentElement;
 
         if (validationFunction()) {
@@ -60,6 +176,19 @@ document.addEventListener('DOMContentLoaded', (e) => {
             parentElement.classList.add('not-valid');
             parentElement.classList.remove('valid');
             parentElement.lastElementChild.hidden = false;
+        }
+    };
+
+    /**
+     * Validates an input element based on its ID using defined validation rules.
+     * @param {HTMLElement} input - The input element to be validated.
+     * @param {Event} event - The event object to prevent form submission if invalid.
+     */
+    const validateInputById = (input, event) => {
+        const rule = validationRules[input.id];
+        if (rule) {
+            const result = rule.validate(input.value);
+            validator(input, () => result.isValid, event, result.message);
         }
     };
 
@@ -145,21 +274,28 @@ document.addEventListener('DOMContentLoaded', (e) => {
      */
     form.addEventListener('submit', (event) => {
         // Validate name, email, and payment details if using credit card
-        validator(nameInput, isNameNotEmpty, event);
-        validator(emailInput, isEmailValid, event);
+        validateInputById(nameInput, event);
+        validateInputById(emailInput, event);
         if (paymentSelector.value === 'credit-card') {
-            validator(cardNumberInput, isCardNumberLengthValid, event);
-            validator(zipCodeInput, isZipCodeValid, event);
-            validator(cvvInput, isCVVValid, event);
+            validateInputById(cardNumberInput, event);
+            validateInputById(zipCodeInput, event);
+            validateInputById(cvvInput, event);
         }
     });
 
     /**
-    * Adds focus and blur event listeners to each checkbox in the activities list.
-    * Highlights the checkbox's parent element when focused and removes the highlight when blurred.
-    */
+     * Adds focus and blur event listeners to each checkbox in the activities list.
+     * Highlights the checkbox's parent element when focused and removes the highlight when blurred.
+     *
+     * @param {NodeListOf<HTMLInputElement>} activitiesCheckboxList - The list of checkboxes for activities.
+     */
     activitiesCheckboxList.forEach((checkbox) => {
-        // Function to update the state of conflicting activities
+        /**
+         * Updates the state of conflicting activities based on the selected activity.
+         *
+         * @param {HTMLInputElement} selectedActivity - The activity checkbox that was selected.
+         * @param {boolean} isChecked - Whether the activity checkbox is checked.
+         */
         const updateConflictingActivities = (selectedActivity, isChecked) => {
             const selectedActivityDate = selectedActivity.getAttribute('data-day-and-time');
 
@@ -176,11 +312,11 @@ document.addEventListener('DOMContentLoaded', (e) => {
 
         checkbox.addEventListener('focus', (event) => {
             event.target.parentElement.classList.add('focus');
-        })
+        });
 
         checkbox.addEventListener('blur', (event) => {
             event.target.parentElement.classList.remove('focus');
-        })
+        });
 
         checkbox.addEventListener('change', (event) => {
             const selectedActivity = event.target;
@@ -189,67 +325,12 @@ document.addEventListener('DOMContentLoaded', (e) => {
     });
 
     inputElementsList.forEach((input) => {
-        /**
-         * Validates an input element based on its ID.
-         * @param {HTMLElement} input - The input element to be validated.
-         */
-        const validateInputById = (input) => {
-            let message = '';
-            switch (input.id) {
-                case 'name':
-                    if (isInputBlank(input)) {
-                        message = 'Please enter your name.';
-                    } else if (!isFirstCharacterUppercase()) {
-                        message = 'The first character of the name must be uppercase.';
-                    } else if (isOnlyOneCharacter()) {
-                        message = 'Name must have at least two characters.';
-                    }
-                    validator(nameInput, isNameValid, null, message);
-                    break;
-                case 'email':
-                    if (isEmailEmpty()) {
-                        message = "The email field cannot be empty. Please enter your email address."
-                    } else if (!isEmailValid()) {
-                        message = "Email address must be formatted correctly."
-                    }
-                    validator(emailInput, isEmailValid, null, message);
-                    break;
-                case 'cc-num':
-                    if (isInputBlank(input)) {
-                        message = 'Please enter your credit card number.';
-                    } else if (!isCardNumberLengthValid()) {
-                        message = 'Credit card number must be 13 to 16 digits long.';
-                    }
-                    validator(cardNumberInput, isCardNumberLengthValid, null, message);
-                    break;
-                case 'zip':
-                    if (isInputBlank(input)) {
-                        message = 'Please enter your zip code.';
-                    } else if (!isZipCodeValid()) {
-                        message = 'Zip code must be 5 digits long.';
-                    }
-
-                    validator(zipCodeInput, isZipCodeValid, null, message);
-                    break;
-                case 'cvv':
-                    if (isInputBlank(input)) {
-                        message = 'Please enter your CVV number.';
-                    } else if (!isCVVValid()) {
-                        message = 'CVV number must be 3 digits long.';
-                    }
-                    validator(cvvInput, isCVVValid, null, message);
-                    break;
-                default:
-                    break;
-            }
-        };
-
         input.addEventListener('keyup', () => {
             validateInputById(input);
         });
 
         input.addEventListener('blur', () => {
             validateInputById(input);
-        })
-    })
+        });
+    });
 });
