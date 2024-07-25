@@ -94,6 +94,11 @@ document.addEventListener('DOMContentLoaded', (e) => {
         isCVVValid: (value) => /^\d{3}$/.test(value),
     };
 
+    /**
+     * Validation rules for form fields.
+     * Each field has a validate function that checks the value against specific criteria
+     * and returns an object indicating whether the value is valid and an appropriate error message.
+     */
     const validationRules = {
         'name': {
             validate: (value) => {
@@ -155,12 +160,14 @@ document.addEventListener('DOMContentLoaded', (e) => {
     };
 
     /**
-        * Validates an input element based on a provided validation function.
-        * Updates the visibility and styling of the input element's parent based on the validation result.
-        * 
-        * @param {HTMLElement} inputElement - The input element to be validated.
-        * @param {Function} validationFunction - A function that performs validation on the input element.
-        */
+     * Validates an input element based on a provided validation function.
+     * Updates the visibility and styling of the input element's parent based on the validation result.
+     * 
+     * @param {HTMLElement} inputElement - The input element to be validated.
+     * @param {Function} validationFunction - A function that performs validation on the input element. The function should return a boolean indicating whether the input is valid.
+     * @param {Event} [event] - The event object associated with the form submission or interaction that triggered the validation. If provided, the event's default action may be prevented.
+     * @param {string} [message=null] - An optional message to display when the validation fails. If not provided, a default message may be shown.
+     */
     const validator = (inputElement, validationFunction, event, message = null) => {
         const parentElement = inputElement.parentElement;
 
